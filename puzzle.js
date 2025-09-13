@@ -174,8 +174,9 @@ const ldSprite = (path) => {
     return new Promise((resolve, reject) => {
         const img = new window.Image();
         img.onload = () => resolve(img);
-        img.onerror = () => reject(new Error(`Failed to load image from ${src}`));
+        img.onerror = () => reject(new Error(`Failed to load image}`));
         img.src = path;
+	
     });
 }
 
@@ -481,6 +482,7 @@ function blkBuster(bid) {
     FlshEffST = performance.now();
     return true;
 }
+
 function activateMiracleFlsh() {
     if (MrflshAniAct) return;
     Mrbtn_used = true;
@@ -496,6 +498,7 @@ function activateMiracleFlsh() {
     AniIdx[1] = OrclIdx["down"] || 0;
     if (snd_miracle) snd_miracle.currentTime = 0, snd_miracle.play();
 }
+
 let startClrAni = () => {
     clrAni = true;
     clrAniSTM = performance.now();
