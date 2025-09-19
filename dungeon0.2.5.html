@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEST20:Dungeon Walking ver.0.2.6</title>
+    <style>
+      body {
+          background-color: #1a202c;
+          color: #a0aec0;
+	  font-family: 'Meiryo UI', monospace;
+          display: flex;
+          justify-content: center;
+	  align-items: center;
+          height: 100vh;
+          margin: 0;
+          flex-direction: column;
+      }
+      .start-screen {
+	  position: absolute;
+	  top: 0;
+	  left: 0;
+	  width: 100%;
+	  height: 100%;
+	  background-color: rgba(0, 0, 0, 0.8);
+	  display: flex;
+	  justify-content: center;
+	  align-items: center;
+      }
+      .start-button {
+	  padding: 1rem 2rem;
+	  font-size: 1.5rem;
+	  font-family: 'Meiryo UI', monospace;
+	  color: #E2E8F0;
+	  background-color: #4a5568;
+	  border: 2px solid #a0aec0;
+	  border-radius: 6px;
+	  cursor: pointer;
+	  transition: background-color 0.3s;
+      }
+
+      .start-button:hover {
+	  background-color: #718096;
+      }      
+      .game {
+          margin: 2rem auto;
+          border: 2px solid #4a5568;
+          border-collapse: separate;
+          overflow: hidden;
+          background-color: #2d3748;
+          border-radius: 6px;
+      }
+      .header {
+          padding: 0.5rem;
+          text-align: center;
+          background-color: #1a202c;
+      }
+      .footer {
+	  padding: 0.1rem;
+	  text-align: center;
+	  background-color: #1a202c;
+      }
+      .title {
+	  margin: 0;
+	  font-size: 1rem;
+	  font-weight: bold;
+	  color: #E2E8F0;
+      }
+      .game-main {
+	  display: flex;
+	  padding: 1rem;
+	  gap: 1rem;
+	  align-items: flex-start;
+      }
+      .game-players {
+	  display: flex;
+	  flex-direction: column;
+	  padding: 0.1rem;
+	  gap: 0.5rem;
+	  width: 130px;
+	  background-color: #1a202c;
+	  border-radius: 4px;
+      }
+      .game-tank, .game-healer, .game-dps {
+	  display: flex;
+	  justify-content: center;
+	  align-items: center;
+	  border: 2px solid #4a5568;
+	  padding: 0.1rem;
+	  border-radius: 4px;
+      }
+      .game-tank { background: #000014; } 
+      .game-healer { background: #001106; }
+      .game-dps { background: #140003; } 
+      .game-players img {
+	  width: 119px;
+	  height: auto;
+	  border-radius: 4px;
+      }
+      .game-players{
+	  width: auto;	  
+      }
+      .player-name {
+	  font-family:arial;
+	  font-style:bold;
+	  font-size:10pt;
+      }
+      canvas {
+	  background-color: #000;
+	  border: 2px solid #4a5568;
+	  image-rendering: pixelated;
+	  border-radius: 4px;
+      }
+      .game-body {
+	  display: flex;
+	  justify-content: space-between;
+	  align-items: center;
+	  padding: 0.5rem;
+	  background-color: #1a202c;
+      }
+      .map-container {
+	  display: flex;
+	  flex-direction: column;
+	  border: 2px solid #4a5568;
+	  padding: 0.1rem;
+	  background-color: #1a202c;
+	  border-radius: 8px;
+      }
+      .orientation {
+	  padding: 0.1rem;
+	  text-align: right;
+	  border-radius: 4px;
+	  font-size: 75%;
+      }
+      .message-box {
+	  background-color: #2d3748;
+	  border: 1px solid #4a5568;
+	  padding: 0.5rem;
+	  min-height: 2rem;
+	  margin-top: 1rem;
+	  margin: 0 1rem;
+	  width:100%;
+	  height:8rem;
+	  align-items:top;
+	  border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="game">
+      <div class="header">
+        <p id="title" class="title">TEST20: Dungeon Walking ver.0.2.5</p>
+      </div>
+      <div class="game-main">
+	<div style="position: relative;">
+          <canvas id="gCanvas" width="720" height="540"></canvas>
+	  <div id="sScrn" class="start-screen">
+	    <button id="sBtn" class="start-button">ENTER The Dungeon</button>
+	  </div>
+	</div>	  
+        <div class="game-players">
+          <div class="game-tank">
+	    <img src="imgs/staffs/hiroshi.png" alt="player sample">
+	    <div class="player-name">HIROSHI</div>	    
+	  </div>
+          <div class="game-healer">
+	    <img src="imgs/Jilpon2.png" alt="player sample">
+	    <div class="player-name">JillPon</div>
+	  </div>
+          <div class="game-dps">
+	    <img src="imgs/staffs/koji.png" alt="player sample">
+	    <div class="player-name">KOJI</div>	  	    
+	  </div>
+          <div class="game-dps">
+	    <img src="imgs/anya.png" alt="player sample">
+	    <div class="player-name">ANYA</div>	    
+	  </div>
+        </div>
+      </div>
+      <div class="game-body">
+        <div class="map-container">
+          <canvas id="mCanvas" width="140" height="140"></canvas>
+          <div id="playerOrientation" class="orientation"></div>	  
+        </div>
+        <div id="messageBox" class="message-box">Mちゃんを探せ！ (方向キーで移動)</div>
+      </div>
+    </div>
+    <script>
+      const maze = [
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0],
+          [0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0],
+          [0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0],
+          [0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0],
+          [0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0],
+	  [0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0],
+	  [0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+	  [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0],
+	  [0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0],
+	  [0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0],
+	  [0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0],
+	  [0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 2, 0],
+	  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      ];
+      // Get the canvas and its 2D rendering context
+      const gCanvas = document.getElementById('gCanvas');
+      const gCtx = gCanvas.getContext('2d');
+      const mCanvas = document.getElementById('mCanvas');
+      const mCtx = mCanvas.getContext('2d');
+      const messageBox = document.getElementById('messageBox');
+      const playerOrientation = document.getElementById('playerOrientation');
+      const sScrn = document.getElementById('sScrn');
+      const sBtn = document.getElementById('sBtn');
+      const MAZE_SIZE = 14;
+      const CELL_SIZE = 10;
+      const player = {
+          x: 1,
+          y: 1,
+          hp: 50,
+          attack: 10,
+          gold: 0,
+          dir: 1, // 0: N, 1: E, 2: S, 3: W
+      };
+      const visited = Array.from({ length: MAZE_SIZE }, () => Array(MAZE_SIZE).fill(false));
+      visited[player.y][player.x] = true;
+      let imgLoad = 0;
+      const totalImgs = 13; // gateImg, wallImg00〜08、monsterImg、treasureImg
+      function checkImgLoad(imgSrc) {
+	  imgLoad++;
+	  console.log(`loaeded ${imgSrc}`); 
+	  if (imgLoad === totalImgs) {
+              console.log('All images loaeded.');
+	  }
+      }
+      const monsterImg = new Image();
+      monsterImg.src = "imgs/monster.png";
+      monsterImg.onload = () => checkImgLoad(monsterImg.src);      
+      const treasureImg = new Image();
+      treasureImg.src = "imgs/treasure.png";
+      treasureImg.onload = () => checkImgLoad(treasureImg.src);
+      const wallImg00 = new Image();      
+      wallImg00.src = 'imgs/wall00.gif';
+      wallImg00.onload = () => checkImgLoad(wallImg00.src);
+      const wallImg01 = new Image();
+      wallImg01.src = 'imgs/wall01.gif';
+      wallImg01.onload = () => checkImgLoad(wallImg01.src);
+      const wallImg02 = new Image();
+      wallImg02.src = 'imgs/wall02.gif';
+      wallImg02.onload = () => checkImgLoad(wallImg02.src);
+      const wallImg03 = new Image();
+      wallImg03.src = 'imgs/wall03.gif';
+      wallImg03.onload = () => checkImgLoad(wallImg03.src);
+      const wallImg04 = new Image();
+      wallImg04.src = 'imgs/wall04.gif';
+      wallImg04.onload = () => checkImgLoad(wallImg04.src);
+      const wallImg05 = new Image();
+      wallImg05.src = 'imgs/wall05.gif';
+      wallImg05.onload = () => checkImgLoad(wallImg05.src);
+      const wallImg06 = new Image();
+      wallImg06.src = 'imgs/wall06.gif';
+      wallImg06.onload = () => checkImgLoad(wallImg06.src);
+      const wallImg07 = new Image();
+      wallImg07.src = 'imgs/wall07.gif';
+      wallImg07.onload = () => checkImgLoad(wallImg07.src);
+      const wallImg08 = new Image();
+      wallImg08.src = 'imgs/wall08.gif';
+      wallImg08.onload = () => checkImgLoad(wallImg08.src);
+      const gateImg00 = new Image();
+      gateImg00.src = 'imgs/gate00.gif';
+      gateImg00.onload = () => checkImgLoad(gateImg00.src);
+      const gateImg01 = new Image();
+      gateImg01.src = 'imgs/gate03.gif';
+      gateImg01.onload = () => checkImgLoad(gateImg01.src);
+      /**
+	 Start Screen Animation
+      */
+      let isAnimating = false;
+      function drawGate(img, alpha = 1.0) {
+          gCtx.globalAlpha = alpha;
+          const x = (gCanvas.width - img.width) / 2;
+          const y = (gCanvas.height - img.height) / 2;
+          gCtx.drawImage(img, x, y, gCanvas.width, gCanvas.height);
+      }
+      /**
+	 Game
+      */
+      function moveForward() {
+	  let currentCellType = maze[player.y][player.x];	  
+          let newX = player.x;
+          let newY = player.y;
+          switch (player.dir) {
+          case 0: newY--; break;
+          case 1: newX++; break;
+          case 2: newY++; break;
+          case 3: newX--; break;
+          }
+          if (newX >= 0 && newX < MAZE_SIZE
+	      && newY >= 0 && newY < MAZE_SIZE
+	      && maze[newY][newX] !== 0) {
+              player.x = newX;
+              player.y = newY;
+	  } else if(currentCellType === 2) {
+	      message = '誰かがいるようだ。';
+	  } else if(currentCellType === 3) {
+	      message = '何かがいるようだ。';
+	  } else if(currentCellType === 4) {
+	      message = '何かがあるようだ。';
+	  } else {
+              message = '壁にぶつかりました。';
+	  }
+	  messageBox.textContent = message;
+	  drawView();
+	  drawMap();
+	  updateOrientation();
+      }
+      function getView() {
+	  const view = [];
+	  let x = player.x;
+	  let y = player.y;
+	  let dx, dy;
+	  switch (player.dir) {
+          case 0: dx = 0; dy = -1; break; // N
+          case 1: dx = 1; dy = 0; break;  // E
+          case 2: dx = 0; dy = 1; break; // S
+          case 3: dx = -1; dy = 0; break; // W
+	  }
+	  for (let i = 0; i < 3; i++) {
+              x += dx;
+              y += dy;
+              if (x >= 0 && x < MAZE_SIZE && y >= 0 && y < MAZE_SIZE && maze[y][x] !== 0) {
+		  view.push({ x, y });
+              } else {
+		  break;
+              }
+	  }
+	  return view;
+      }
+      function drawView() {
+	  gCtx.clearRect(0, 0, gCanvas.width, gCanvas.height);
+	  const view = getView();
+          let isFWall = false;
+          let isLWall = false;
+          let isRWall = false;
+	  if (view.length===0) {
+	      gCtx.drawImage(wallImg00,0,0,gCanvas.width,gCanvas.width/5*4);
+	      return;
+	  }
+	  for (let depth = 1; depth <= view.length; depth++) {
+              const x = view[depth-1].x;
+              const y = view[depth-1].y;
+              let frontX = x;
+              let frontY = y;
+              let leftX = x;
+              let leftY = y;
+              let rightX = x;
+              let rightY = y;
+              switch (player.dir) {
+              case 0: 
+                  frontX = x; frontY = y - 1;
+                  leftX = x - 1; leftY = y;
+                  rightX = x + 1; rightY = y;
+                  break;
+              case 1: 
+                  frontX = x + 1; frontY = y;
+                  leftX = x; leftY = y - 1;
+                  rightX = x; rightY = y + 1;
+                  break;
+              case 2: 
+                  frontX = x; frontY = y + 1;
+                  leftX = x + 1; leftY = y;
+                  rightX = x - 1; rightY = y;
+                  break;
+              case 3: 
+                  frontX = x - 1; frontY = y;
+                  leftX = x; leftY = y + 1;
+                  rightX = x; rightY = y - 1;
+                  break;
+              }
+              isFWall = frontX < 0 || frontX >= MAZE_SIZE
+		  || frontY < 0 || frontY >= MAZE_SIZE
+		  || maze[frontY][frontX] === 0;
+              isLWall = leftX < 0 || leftX >= MAZE_SIZE
+		  || leftY < 0 || leftY >= MAZE_SIZE
+		  || maze[leftY][leftX] === 0;
+              isRWall = rightX < 0 || rightX >= MAZE_SIZE
+		  || rightY < 0 || rightY >= MAZE_SIZE
+		  || maze[rightY][rightX] === 0;
+	      const wwsz =  gCanvas.width * (0.5 ** (depth-1));
+	      console.log("canvas width:",gCanvas.width,"depth:",depth, "wwsz:",wwsz);
+              const whsz = wwsz / 5 * 4;
+	      let wx = gCanvas.width/2 - wwsz /2;
+              let wy = wx / 5 * 4 ; 
+              if (isLWall && isRWall) {
+		  if (isFWall)
+		      gCtx.drawImage(wallImg02 ,wx, wy, wwsz, whsz);		      
+		  else
+		      gCtx.drawImage(wallImg01 ,wx, wy, wwsz, whsz);
+              } else if (isLWall && !isRWall) {
+		  if (isFWall)
+		      gCtx.drawImage(wallImg04 ,wx, wy, wwsz, whsz);		      
+		  else
+		      gCtx.drawImage(wallImg03 ,wx, wy, wwsz, whsz);
+              } else if (!isLWall && isRWall) {
+		  gCtx.drawImage(isFWall ? wallImg06 : wallImg05, wx, wy, wwsz, whsz);
+              } else if (!isLWall && !isRWall) {
+		  gCtx.drawImage(isFWall ? wallImg08 : wallImg07, wx, wy, wwsz, whsz);
+              }
+	      if (depth===0) {
+		  switch(maze[y][x]){
+		  case 2:
+		      gCtx.drawImage(monsterImg, wx+240, wy+160, 240, 240);
+		      break;
+		  case 3:
+		      gCtx.drawImage(treasureImg, wx+300, 360, 120, 120);
+		      break;
+		  default:
+		      break;
+		  }
+	      }
+	  }
+      }
+      // Draw the 2D map view
+      function drawMap() {
+	  mCtx.clearRect(0, 0, mCanvas.width, mCanvas.height);
+	  for (let y = 0; y < MAZE_SIZE; y++) {
+	      for (let x = 0; x < MAZE_SIZE; x++) {
+		  if (maze[y][x] === 0) {
+		      mCtx.fillStyle = '#888';
+		      mCtx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+		  } else if (visited[y][x]) {
+		      mCtx.fillStyle = '#114422';
+		      mCtx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+		  }
+	      }
+	  }
+	  mCtx.fillStyle = '#12afb2';
+	  mCtx.beginPath();
+	  const playerX = player.x * CELL_SIZE + CELL_SIZE / 2;
+	  const playerY = player.y * CELL_SIZE + CELL_SIZE / 2;
+	  const playerSize = CELL_SIZE / 2;
+	  mCtx.arc(playerX, playerY, playerSize, 0, 2 * Math.PI);
+	  mCtx.fill();
+	  mCtx.strokeStyle = '#fff';
+	  mCtx.lineWidth = 3;
+	  mCtx.beginPath();
+	  mCtx.moveTo(playerX, playerY);
+	  const dirs = [
+	      { dx: 0, dy: -1, name: 'North' }, // N
+	      { dx: 1, dy: 0, name: 'East' },  // E
+	      { dx: 0, dy: 1, name: 'South' },  // S
+	      { dx: -1, dy: 0, name: 'West' }  // W
+	  ];
+	  const dirX = playerX + dirs[player.dir].dx * playerSize;
+	  const dirY = playerY + dirs[player.dir].dy * playerSize;
+	  mCtx.lineTo(dirX, dirY);
+	  mCtx.stroke();
+      }
+      function updateOrientation() {
+	  const dirs = ['North','East','South','West'];
+	  playerOrientation.textContent = `(${player.x}, ${player.y}) ${dirs[player.dir]}`;
+      }
+      /**
+	 Event Loop Handle keyboard input
+      */
+      const gST = {
+	  preGm: 'pre-game',
+	  inGm: 'in-game',
+      };
+      let gst=gST.preGm;
+      function gateopen(){
+	  if (isAnimating) {showMessage('animation is running.');return; }
+	  isAnimating = true;
+	  sBtn.disabled = true;
+	  let alpha = 0.0;
+	  const fadeInInterval = setInterval(() => {
+	      gCtx.clearRect(0,0,gCanvas.width,gCanvas.height);//Clear the canvas and redraw the base image
+	      drawGate(gateImg00);          // Draw the second image with increasing transparency
+	      alpha += 0.02;                // Adjust this value to change the animation speed
+	      drawGate(gateImg01, alpha);
+	      if (alpha >= 1.0) {	    // When alpha reaches 1.0, stop the animation
+		  clearInterval(fadeInInterval);
+		  isAnimating = false;		  // Reset to a stable state
+		  sBtn.disabled = false;
+		  // To ensure image01 stays on top, a final draw is good practice		  
+		  gCtx.clearRect(0,0,gCanvas.width,gCanvas.height);
+		  drawGate(gateImg01);
+	      }
+	  }, 30);	  // Adjust this value to change the animation smoothness
+
+	  gst = gST.inGm;	  
+	  sScrn.style.display = 'none';	  
+
+	  drawView();
+	  drawMap();
+	  updateOrientation();
+	  console.log("gst:",gST);
+      }
+      const handler = (e) => {
+	  console.log(`Event type: ${e.type}`);
+	  if (gst==gST.preGm) {
+	      gateopen();
+	      console.log("gst:",gST);
+	      sBtn.removeEventListener("click",this);	      
+	  }
+	  let moved = false;
+	  let message = '';
+	  const dirs = [
+	      { dx: 0, dy: -1 }, // N
+	      { dx: 1, dy: 0 },  // E
+	      { dx: 0, dy: 1 },  // S
+	      { dx: -1, dy: 0 }  // W
+	  ];
+	  switch (e.key) {
+	  case 'ArrowUp':
+	      const dx = dirs[player.dir].dx;
+	      const dy = dirs[player.dir].dy;
+	      const newX = player.x + dx;
+	      const newY = player.y + dy;
+	      if (0 <= newX && newX < MAZE_SIZE  
+                  && 0 <= newY && newY < MAZE_SIZE
+		  && maze[newY][newX] !== 0) {
+		  player.x = newX;
+		  player.y = newY;
+		  visited[newY][newX] = true;
+		  moved = true;
+		  message = '前進しました。';
+	      } else {
+		  message = '壁にぶつかりました。';
+	      }
+	      break;
+	  case 'ArrowLeft':
+	      player.dir = (player.dir + 3) % 4; // Turn left
+	      moved = true;
+	      message = '左を向きました。';
+	      break;
+	  case 'ArrowRight':
+	      player.dir = (player.dir + 1) % 4; // Turn right
+	      moved = true;
+	      message = '右を向きました。';
+	      break;
+	  }
+	  // Check for monster/treasure only after a successful move
+	  const currentCellType = maze[player.y][player.x];
+	  if (currentCellType === 2) {
+	      message = 'なにかがいるようだ。';
+	  } else if (currentCellType === 3) {
+	      message = '宝箱があるようだ。';
+	  }
+	  if (moved) {
+	      drawView();
+	      drawMap();
+	      messageBox.textContent = message;
+	      updateOrientation();
+	  } else if (message) {
+	      messageBox.textContent = message;
+	  }
+      };
+      sBtn.addEventListener('click', handler);
+      window.addEventListener('keydown', handler);
+    </script>
+  </body>
+</html>
+
